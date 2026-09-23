@@ -107,6 +107,7 @@
     var isWeChat = /micromessenger/.test(ua);
     if (isWeChat) document.getElementById('wxTip').style.display = 'flex';
 
+    // 1. 输入清洗：兼容全角数字、零宽字符、空格等污染输入
     function sanitizeIdCard(val) {
         return val
             .replace(/[\s\uFEFF\u200B\u200C\u200D\u00A0]/g, '')
@@ -119,6 +120,7 @@
     document.getElementById('idCardInput').addEventListener('input', function(e) { e.target.value = sanitizeIdCard(e.target.value); });
     document.getElementById('phoneInput').addEventListener('input', function(e) { e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 11); });
 
+    // 2. 身份证强校验（包含日期合法性回验）
     function validateIDCard(idCard) {
         if (!/^\d{17}[\dX]$/.test(idCard)) return { valid: false, msg: '身份证号格式不正确，应为17位数字+1位数字或X' };
         var year = parseInt(idCard.substring(6, 10), 10);
@@ -134,6 +136,7 @@
         return { valid: true, msg: '' };
     }
 
+    // 3. 解析身份证信息
     function parseIdCard(idCard) {
         var gender = parseInt(idCard.charAt(16), 10) % 2 === 1 ? '男' : '女';
         var year = parseInt(idCard.substring(6, 10), 10);
@@ -166,7 +169,7 @@
         if (e.target.files[0]) { var img = document.getElementById('photoPreview'); img.src = URL.createObjectURL(e.target.files[0]); img.classList.remove('hidden'); }
     });
 
-    // ========== 【修改】增大水印间距 ==========
+    // 4. 添加水印（已增大间距）
     function addWatermark(file, canvasId) {
         return new Promise(function(resolve) {
             var reader = new FileReader();
@@ -187,10 +190,8 @@
                     ctx.rotate(-25 * Math.PI / 180);
                     var text = '仅供工伤预防培训备案使用';
                     var tw = ctx.measureText(text).width;
-                    // 水平间距：文字宽度 + 图片宽度的40%（原为25%）
-                    var sx = tw + width / 2.5;
-                    // 垂直间距：字号的4.5倍（原为3倍）
-                    var sy = fontSize * 4.5;
+                    var sx = tw + width / 2.5; // 增大水平间距
+                    var sy = fontSize * 4.5;   // 增大垂直间距
                     for (var y = -height; y < height * 2; y += sy) {
                         for (var x = -width; x < width * 2; x += sx) {
                             ctx.fillText(text, x, y);
@@ -208,6 +209,37 @@
     document.getElementById('frontInput').addEventListener('change', function(e) { if (e.target.files[0]) addWatermark(e.target.files[0], 'frontCanvas').then(function(c) { c.classList.remove('hidden'); frontWatermarked = true; }); });
     document.getElementById('backInput').addEventListener('change', function(e) { if (e.target.files[0]) addWatermark(e.target.files[0], 'backCanvas').then(function(c) { c.classList.remove('hidden'); backWatermarked = true; }); });
 
+    // 5. 【核心修复】Base64转Blob URL + 图片压缩，解决移动端PDF生成失败
+    function base64ToBlobUrl(base64) {
+        var arr = base64.split(',');
+        var mime = arr[0].match(/:(.*?);/)[1];
+        var bstr = atob(arr[1]);
+        var n = bstr.length;
+        var u8arr = new Uint8Array(n);
+        while (n--) u8arr[n] = bstr.charCodeAt(n);
+        var blob = new Blob([u8arr], { type: mime });
+        return URL.createObjectURL(blob);
+    }
+
+    function compressImageToBlobUrl(base64, maxW) {
+        return new Promise(function(resolve) {
+            var img = new Image();
+            img.onload = function() {
+                var w = img.width, h = img.height;
+                if (w > maxW) { h = (maxW / w) * h; w = maxW; }
+                var c = document.createElement('canvas');
+                c.width = w; c.height = h;
+                c.getContext('2d').drawImage(img, 0, 0, w, h);
+                c.toBlob(function(blob) {
+                    resolve(URL.createObjectURL(blob));
+                }, 'image/jpeg', 0.8);
+            };
+            img.onerror = function() { resolve(base64ToBlobUrl(base64)); };
+            img.src = base64;
+        });
+    }
+
+    // 6. 表单提交
     document.getElementById('regForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         var rawIdCard = document.getElementById('idCardInput').value;
@@ -253,14 +285,21 @@
         window.scrollTo(0, 0);
     });
 
+    // 7. 生成并下载PDF
     document.getElementById('downloadBtn').addEventListener('click', async function() {
         if (!currentFormData) return;
         var loading = document.getElementById('loadingOverlay');
         loading.style.display = 'flex';
         try {
             var d = currentFormData;
+
+            // 将Base64转为Blob URL，并压缩身份证图片尺寸防止内存溢出
+            var photoUrl = base64ToBlobUrl(d.photoBase64);
+            var frontUrl = await compressImageToBlobUrl(d.frontBase64, 600);
+            var backUrl = await compressImageToBlobUrl(d.backBase64, 600);
+
             var html = '<h1>2026年湖北省重点危险化学品企业自动化仪表作业人员<br>工伤预防能力提升培训学员登记表</h1><table>';
-            html += '<tr><td class="label">填写时间</td><td colspan="4">' + new Date().toLocaleString('zh-CN') + '</td><td class="photo-cell" rowspan="5"><img src="' + d.photoBase64 + '"></td></tr>';
+            html += '<tr><td class="label">填写时间</td><td colspan="4">' + new Date().toLocaleString('zh-CN') + '</td><td class="photo-cell" rowspan="5"><img src="' + photoUrl + '"></td></tr>';
             html += '<tr><td class="label">姓 名</td><td>' + d.name + '</td><td class="label">性 别</td><td colspan="2">' + d.gender + '</td></tr>';
             html += '<tr><td class="label">年 龄</td><td>' + d.age + '</td><td class="label">电 话</td><td colspan="2">' + d.phone + '</td></tr>';
             html += '<tr><td class="label">身份证号</td><td colspan="4">' + d.id_card + '</td></tr>';
@@ -268,12 +307,14 @@
             html += '<tr><td class="label">培训类别</td><td colspan="2">' + d.train_type + '</td><td class="label">培训班次</td><td colspan="2">' + d.train_class + '</td></tr>';
             html += '<tr><td class="label">培训时间</td><td colspan="5">' + d.train_date_start + ' 至 ' + d.train_date_end + '</td></tr>';
             html += '<tr><td class="label" colspan="6" style="text-align:center;background:#e6e6e6;font-weight:bold;padding:6px;">身份证复印件（系统已自动添加专属防伪水印）</td></tr>';
-            html += '<tr><td colspan="6" style="text-align:center;padding:12px;"><img src="' + d.frontBase64 + '" class="id-img"><div class="id-label">正面（人像面）</div></td></tr>';
-            html += '<tr><td colspan="6" style="text-align:center;padding:12px;"><img src="' + d.backBase64 + '" class="id-img"><div class="id-label">反面（国徽面）</div></td></tr>';
+            html += '<tr><td colspan="6" style="text-align:center;padding:12px;"><img src="' + frontUrl + '" class="id-img"><div class="id-label">正面（人像面）</div></td></tr>';
+            html += '<tr><td colspan="6" style="text-align:center;padding:12px;"><img src="' + backUrl + '" class="id-img"><div class="id-label">反面（国徽面）</div></td></tr>';
             html += '</table><div class="footer"><b>备注：</b>本表需由学员本人填写，培训结束后，由培训单位移交相关政府部门核对后归档备查。</div>';
 
             var preview = document.getElementById('pdfPreview');
             preview.innerHTML = html;
+
+            // 等待Blob URL图片加载完成
             await new Promise(function(resolve) {
                 var imgs = preview.querySelectorAll('img'), loaded = 0;
                 if (!imgs.length) { resolve(); return; }
@@ -281,10 +322,22 @@
                     if (im.complete) { loaded++; if (loaded >= imgs.length) resolve(); }
                     else { im.onload = im.onerror = function() { loaded++; if (loaded >= imgs.length) resolve(); }; }
                 });
-                setTimeout(resolve, 3000);
+                setTimeout(resolve, 5000); // 5秒超时保护
             });
 
-            var canvas = await html2canvas(preview, { scale: 2, useCORS: true, backgroundColor: '#ffffff', width: 794 });
+            var canvas = await html2canvas(preview, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,       // 允许跨域/ tainted canvas，兼容Blob URL
+                backgroundColor: '#ffffff',
+                width: 794
+            });
+
+            // 释放Blob URL内存
+            URL.revokeObjectURL(photoUrl);
+            URL.revokeObjectURL(frontUrl);
+            URL.revokeObjectURL(backUrl);
+
             var jsPDF = window.jspdf.jsPDF;
             var pdf = new jsPDF('p', 'pt', 'a4');
             var pdfW = 595, pdfH = 842;

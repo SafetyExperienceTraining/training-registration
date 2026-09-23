@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>培训学员报名系统</title>
+    <title>2026年湖北省重点危险化学品企业自动化仪表作业人员工伤预防能力提升培训学员登记表</title>
     <style>
         /* 网页端表单样式 */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px; background: #f4f7f6; color: #333; }
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; font-size: 20px; line-height: 1.4; }
         .form-group { margin-bottom: 18px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #444; }
         input, select { width: 100%; padding: 10px; border: 1px solid #dcdde1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
@@ -27,41 +27,19 @@
             @page { size: A4 portrait; margin: 1.5cm; }
             
             body { font-family: '宋体', SimSun, serif !important; font-size: 10.5pt; color: #000; line-height: 1.2; background: #fff; }
-            h1 { text-align: center; font-size: 18pt; font-weight: bold; margin: 0 0 12pt 0; letter-spacing: 2pt; font-family: '黑体', SimHei, sans-serif; }
+            /* ✅ 标题自适应换行，防止超长标题溢出 */
+            h1 { text-align: center; font-size: 16pt; font-weight: bold; margin: 0 0 12pt 0; letter-spacing: 1pt; font-family: '黑体', SimHei, sans-serif; line-height: 1.4; }
             
             table { width: 100%; border-collapse: collapse; border: 1.5pt solid #000; page-break-inside: avoid; }
             td { border: 0.75pt solid #000; padding: 4pt 6pt; vertical-align: middle; font-size: 10.5pt; word-break: break-all; }
             .label { background-color: #f8f8f8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: bold; text-align: center; width: 15%; }
             
-            /* ✅ 一寸照片：改为 contain 模式，保证完整显示不裁切，单元格自适应高度 */
-            .photo-cell { 
-                text-align: center; 
-                vertical-align: middle; 
-                padding: 6pt; 
-                width: 16%; 
-                min-height: 4cm; /* 设定最小高度兜底 */
-            }
-            .photo-cell img { 
-                max-width: 2.5cm; 
-                max-height: 3.5cm; 
-                width: auto; 
-                height: auto; 
-                object-fit: contain; /* 关键：等比缩放完整显示 */
-                border: 0.5pt solid #999; 
-                display: block; 
-                margin: 0 auto; 
-            }
+            /* ✅ 一寸照片：contain 模式完整显示 */
+            .photo-cell { text-align: center; vertical-align: middle; padding: 6pt; width: 16%; min-height: 4cm; }
+            .photo-cell img { max-width: 2.5cm; max-height: 3.5cm; width: auto; height: auto; object-fit: contain; border: 0.5pt solid #999; display: block; margin: 0 auto; }
             
-            /* ✅ 身份证照片：限制最大宽高，居中完整呈现 */
-            .id-img { 
-                max-width: 90%; 
-                max-height: 6cm; 
-                width: auto; 
-                height: auto; 
-                object-fit: contain; 
-                display: block; 
-                margin: 0 auto; 
-            }
+            /* ✅ 身份证照片：限制最大宽高居中呈现 */
+            .id-img { max-width: 90%; max-height: 6cm; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
             .id-label { font-size: 9pt; text-align: center; margin-top: 4pt; color: #333; }
             
             .footer { margin-top: 15pt; font-size: 9pt; text-align: center; color: #333; border-top: 0.75pt dashed #666; padding-top: 8pt; line-height: 1.4; }
@@ -69,7 +47,9 @@
     </style>
 </head>
 <body>
-    <h2>📋 培训学员报名表</h2>
+    <!-- ✅ 网页端标题已更新 -->
+    <h2>📋 2026年湖北省重点危险化学品企业<br>自动化仪表作业人员工伤预防能力提升培训<br>学员登记表</h2>
+    
     <form id="regForm">
         <div class="form-group"><label>姓名 *</label><input name="name" required></div>
         <div class="form-group" style="display:flex; gap:15px;">
@@ -79,15 +59,35 @@
         <div class="form-group"><label>身份证号 *</label><input name="id_card" maxlength="18" required></div>
         <div class="form-group"><label>联系电话 *</label><input name="phone" type="tel" maxlength="11" required></div>
         <div class="form-group"><label>工作单位 *</label><input name="company" required></div>
+        
         <div class="form-group" style="display:flex; gap:15px;">
-            <div style="flex:1;"><label>培训类别 *</label><select name="train_type" required><option value="安全生产">安全生产</option><option value="技能提升">技能提升</option><option value="管理培训">管理培训</option></select></div>
+            <div style="flex:1;">
+                <label>培训类别 *</label>
+                <!-- ✅ 新增：工伤预防能力提升培训 选项 -->
+                <select name="train_type" required>
+                    <option value="工伤预防能力提升培训">工伤预防能力提升培训</option>
+                    <option value="安全生产">安全生产</option>
+                    <option value="技能提升">技能提升</option>
+                    <option value="管理培训">管理培训</option>
+                </select>
+            </div>
             <div style="flex:1;"><label>培训班次 *</label><input name="train_class" placeholder="如：第一期" required></div>
         </div>
-        <div class="form-group"><label>计划培训时间 *</label><input name="train_date" type="date" required></div>
+
+        <!-- ✅ 培训时间改为起止日期双输入框 -->
+        <div class="form-group">
+            <label>培训时间 *</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <input name="train_date_start" type="date" required style="flex:1;">
+                <span style="color:#666; font-weight:bold;">至</span>
+                <input name="train_date_end" type="date" required style="flex:1;">
+            </div>
+        </div>
+
         <div class="form-group"><label>个人一寸照片 *</label><input type="file" accept="image/*" id="photoInput" required><div class="preview-box"><img id="photoPreview" class="hidden"></div></div>
         <div class="form-group"><label>身份证正面 (人像面) *</label><input type="file" accept="image/*" id="frontInput" required><p class="tip">上传后系统将自动添加防盗用水印</p><div class="preview-box"><canvas id="frontCanvas" class="hidden"></canvas></div></div>
         <div class="form-group"><label>身份证反面 (国徽面) *</label><input type="file" accept="image/*" id="backInput" required><p class="tip">上传后系统将自动添加防盗用水印</p><div class="preview-box"><canvas id="backCanvas" class="hidden"></canvas></div></div>
-        <button type="submit" id="submitBtn">提交并生成PDF报名表</button>
+        <button type="submit" id="submitBtn">提交并生成PDF登记表</button>
     </form>
 
     <div id="printArea" class="hidden"></div>
@@ -144,7 +144,8 @@
 
         function generatePDF(data) {
             const printContent = `
-                <h1>培训学员报名表</h1>
+                <!-- ✅ PDF 表格大标题已更新 -->
+                <h1>2026年湖北省重点危险化学品企业自动化仪表作业人员<br>工伤预防能力提升培训学员登记表</h1>
                 <table>
                     <tr>
                         <td class="label">填写时间</td>
@@ -177,9 +178,10 @@
                         <td class="label">培训班次</td>
                         <td colspan="2">${data.train_class}</td>
                     </tr>
+                    <!-- ✅ 培训时间格式已更新为：某年某月某日至某年某月某日 -->
                     <tr>
-                        <td class="label">计划培训时间</td>
-                        <td colspan="5">${data.train_date}</td>
+                        <td class="label">培训时间</td>
+                        <td colspan="5">${data.train_date_start} 至 ${data.train_date_end}</td>
                     </tr>
                     <tr>
                         <td class="label" colspan="6" style="text-align:center; background:#e6e6e6; font-weight:bold; padding: 4pt;">身份证复印件（系统已自动添加专属防伪水印）</td>
@@ -227,7 +229,7 @@
             
             if (frontCanvas.classList.contains('hidden') || backCanvas.classList.contains('hidden')) {
                 alert('请等待身份证图片水印处理完成后再提交！');
-                btn.disabled = false; btn.innerText = '提交并生成PDF报名表'; return;
+                btn.disabled = false; btn.innerText = '提交并生成PDF登记表'; return;
             }
 
             try {
@@ -239,7 +241,10 @@
                     name: fd.get('name'), gender: fd.get('gender'), age: fd.get('age'),
                     id_card: fd.get('id_card'), phone: fd.get('phone'), company: fd.get('company'),
                     train_type: fd.get('train_type'), train_class: fd.get('train_class'),
-                    train_date: fd.get('train_date'), create_time: new Date().toLocaleString('zh-CN'),
+                    // ✅ 获取起止日期并格式化
+                    train_date_start: fd.get('train_date_start'), 
+                    train_date_end: fd.get('train_date_end'),
+                    create_time: new Date().toLocaleString('zh-CN'),
                     photo_base64: photoBase64, front_base64: frontBase64, back_base64: backBase64
                 };
 
@@ -247,12 +252,12 @@
                 
                 setTimeout(() => {
                     alert('🎉 PDF生成窗口已弹出！\n\n请在打印预览界面中：\n1. 目标打印机选择【另存为PDF】\n2. 勾选【背景图形】\n3. 点击保存即可。');
-                    btn.disabled = false; btn.innerText = '提交并生成PDF报名表';
+                    btn.disabled = false; btn.innerText = '提交并生成PDF登记表';
                 }, 500);
 
             } catch (err) {
                 alert('生成失败：' + err.message);
-                btn.disabled = false; btn.innerText = '提交并生成PDF报名表';
+                btn.disabled = false; btn.innerText = '提交并生成PDF登记表';
             }
         });
     </script>

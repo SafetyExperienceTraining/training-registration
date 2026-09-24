@@ -26,16 +26,22 @@
         #successPage h3 { color: #07c160; font-size: 22px; margin-bottom: 15px; }
         #successPage p { color: #666; margin: 15px 0; line-height: 1.6; }
         #successPage .tip-text { font-size: 13px; color: #999; margin-top: 25px; }
+        
+        /* PDF预览样式 */
         #pdfPreview { position: absolute; left: -9999px; top: 0; width: 794px; background: #fff; padding: 40px; font-family: '宋体', SimSun, serif; font-size: 14px; color: #000; line-height: 1.5; }
         #pdfPreview h1 { text-align: center; font-size: 18px; font-weight: bold; margin: 0 0 15px 0; font-family: '黑体', SimHei, sans-serif; }
         #pdfPreview table { width: 100%; border-collapse: collapse; border: 2px solid #000; }
         #pdfPreview td { border: 1px solid #000; padding: 6px 8px; vertical-align: middle; word-break: break-all; }
         #pdfPreview .label { background-color: #f0f0f0; font-weight: bold; text-align: center; width: 15%; }
-        #pdfPreview .photo-cell { text-align: center; vertical-align: middle; padding: 8px; width: 16%; }
-        #pdfPreview .photo-cell img { max-width: 80px; max-height: 110px; object-fit: contain; border: 1px solid #999; display: block; margin: 0 auto; }
-        #pdfPreview .id-img { max-width: 90%; max-height: 200px; object-fit: contain; display: block; margin: 0 auto; }
+        #pdfPreview .photo-cell { text-align: center; vertical-align: middle; padding: 8px; width: 18%; }
         #pdfPreview .id-label { font-size: 12px; text-align: center; margin-top: 5px; color: #333; }
         #pdfPreview .footer { margin-top: 15px; font-size: 11px; text-align: center; color: #333; border-top: 1px dashed #666; padding-top: 8px; }
+        
+        /* 【已修改】二寸照片锚点：35mm×49mm ≈ 100px×140px (72dpi基准) */
+        .img-anchor { display: block; margin: 0 auto; background: #f9f9f9; border: 1px dashed #ccc; }
+        .anchor-photo { width: 100px; height: 140px; }
+        .anchor-id { width: 480px; height: 300px; }
+
         #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
         #loadingOverlay .spinner { background: #fff; padding: 30px 40px; border-radius: 12px; text-align: center; }
         #loadingOverlay .spinner p { margin-top: 15px; color: #666; font-size: 14px; }
@@ -78,7 +84,8 @@
             <input name="train_date_end" type="date" required style="flex:1;">
         </div>
     </div>
-    <div class="form-group"><label>个人一寸照片 *</label><input type="file" accept="image/*" id="photoInput" required><div class="preview-box"><img id="photoPreview" class="hidden"></div></div>
+    <!-- 【已修改】标签改为二寸照片 -->
+    <div class="form-group"><label>个人二寸照片 *</label><input type="file" accept="image/*" id="photoInput" required><div class="preview-box"><img id="photoPreview" class="hidden"></div></div>
     <div class="form-group"><label>身份证正面（人像面） *</label><input type="file" accept="image/*" id="frontInput" required><p class="tip">上传后系统将自动添加防伪水印</p><div class="preview-box"><canvas id="frontCanvas" class="hidden"></canvas></div></div>
     <div class="form-group"><label>身份证反面（国徽面） *</label><input type="file" accept="image/*" id="backInput" required><p class="tip">上传后系统将自动添加防伪水印</p><div class="preview-box"><canvas id="backCanvas" class="hidden"></canvas></div></div>
     <button type="submit" class="btn-primary" id="submitBtn">提交并生成PDF登记表</button>
@@ -90,7 +97,7 @@
     <button class="btn-download" id="downloadBtn">📥 点击下载PDF登记表</button><br>
     <button class="btn-alt hidden" id="openInBrowserBtn">🔗 在浏览器中打开后下载</button><br>
     <button class="btn-back" id="backBtn">返回重新填写</button>
-    <p class="tip-text">💡 如果点击下载后没有反应：<br>• 安卓用户请检查浏览器是否拦截了下载弹窗；<br>• iPhone 用户请在弹窗中选择「存储到“文件”」；<br>• 微信内打开请点击「在浏览器中打开」后再下载。</p>
+    <p class="tip-text">💡 如果点击下载后没有反应：<br>• 安卓用户请检查浏览器是否拦截了下载弹窗；<br>• iPhone 用户请在弹窗中选择「存储到"文件"」；<br>• 微信内打开请点击「在浏览器中打开」后再下载。</p>
 </div>
 
 <div id="pdfPreview"></div>
@@ -107,69 +114,47 @@
     var isWeChat = /micromessenger/.test(ua);
     if (isWeChat) document.getElementById('wxTip').style.display = 'flex';
 
-    // 1. 输入清洗：兼容全角数字、零宽字符、空格等污染输入
     function sanitizeIdCard(val) {
-        return val
-            .replace(/[\s\uFEFF\u200B\u200C\u200D\u00A0]/g, '')
-            .replace(/[０-９]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
-            .toUpperCase()
-            .replace(/[^\dX]/g, '')
-            .slice(0, 18);
+        return val.replace(/[\s\uFEFF\u200B\u200C\u200D\u00A0]/g, '').replace(/[０-９]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).toUpperCase().replace(/[^\dX]/g, '').slice(0, 18);
     }
-
     document.getElementById('idCardInput').addEventListener('input', function(e) { e.target.value = sanitizeIdCard(e.target.value); });
     document.getElementById('phoneInput').addEventListener('input', function(e) { e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 11); });
 
-    // 2. 身份证强校验（包含日期合法性回验）
     function validateIDCard(idCard) {
-        if (!/^\d{17}[\dX]$/.test(idCard)) return { valid: false, msg: '身份证号格式不正确，应为17位数字+1位数字或X' };
-        var year = parseInt(idCard.substring(6, 10), 10);
-        var month = parseInt(idCard.substring(10, 12), 10);
-        var day = parseInt(idCard.substring(12, 14), 10);
-        var birthDate = new Date(year, month - 1, day);
-        if (birthDate.getFullYear() !== year || birthDate.getMonth() !== month - 1 || birthDate.getDate() !== day) return { valid: false, msg: '身份证号中的出生日期无效（如2月30日不存在）' };
-        var factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
-        var checkCode = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
-        var sum = 0;
-        for (var i = 0; i < 17; i++) sum += parseInt(idCard.charAt(i), 10) * factor[i];
-        if (idCard.charAt(17).toUpperCase() !== checkCode[sum % 11]) return { valid: false, msg: '身份证号校验码错误，请核对最后一位' };
+        if (!/^\d{17}[\dX]$/.test(idCard)) return { valid: false, msg: '身份证号格式不正确' };
+        var y = parseInt(idCard.substring(6, 10), 10), m = parseInt(idCard.substring(10, 12), 10), d = parseInt(idCard.substring(12, 14), 10);
+        var bd = new Date(y, m - 1, d);
+        if (bd.getFullYear() !== y || bd.getMonth() !== m - 1 || bd.getDate() !== d) return { valid: false, msg: '出生日期无效' };
+        var f = [7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2], c = ['1','0','X','9','8','7','6','5','4','3','2'], s = 0;
+        for (var i = 0; i < 17; i++) s += parseInt(idCard.charAt(i), 10) * f[i];
+        if (idCard.charAt(17).toUpperCase() !== c[s % 11]) return { valid: false, msg: '校验码错误' };
         return { valid: true, msg: '' };
     }
 
-    // 3. 解析身份证信息
     function parseIdCard(idCard) {
-        var gender = parseInt(idCard.charAt(16), 10) % 2 === 1 ? '男' : '女';
-        var year = parseInt(idCard.substring(6, 10), 10);
-        var month = parseInt(idCard.substring(10, 12), 10) - 1;
-        var day = parseInt(idCard.substring(12, 14), 10);
-        var birth = new Date(year, month, day);
-        var today = new Date();
-        var age = today.getFullYear() - birth.getFullYear();
-        if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
-        return { gender: gender, age: age };
+        var g = parseInt(idCard.charAt(16), 10) % 2 === 1 ? '男' : '女';
+        var y = parseInt(idCard.substring(6, 10), 10), m = parseInt(idCard.substring(10, 12), 10) - 1, d = parseInt(idCard.substring(12, 14), 10);
+        var b = new Date(y, m, d), t = new Date(), a = t.getFullYear() - b.getFullYear();
+        if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--;
+        return { gender: g, age: a };
     }
 
     document.getElementById('idCardInput').addEventListener('blur', function() {
-        var idCard = sanitizeIdCard(this.value.trim());
-        var errorDiv = document.getElementById('idCardError');
-        if (idCard.length === 0) { errorDiv.style.display = 'none'; return; }
-        if (idCard.length < 18) { errorDiv.textContent = '身份证号需为18位，当前' + idCard.length + '位'; errorDiv.style.display = 'block'; return; }
-        var result = validateIDCard(idCard);
-        if (!result.valid) { errorDiv.textContent = result.msg; errorDiv.style.display = 'block'; return; }
-        errorDiv.style.display = 'none';
-        var info = parseIdCard(idCard);
+        var v = sanitizeIdCard(this.value.trim()), err = document.getElementById('idCardError');
+        if (!v.length) { err.style.display = 'none'; return; }
+        if (v.length < 18) { err.textContent = '需18位，当前' + v.length + '位'; err.style.display = 'block'; return; }
+        var r = validateIDCard(v);
+        if (!r.valid) { err.textContent = r.msg; err.style.display = 'block'; return; }
+        err.style.display = 'none';
+        var info = parseIdCard(v);
         document.getElementById('genderSelect').value = info.gender;
         document.getElementById('ageInput').value = info.age;
     });
 
-    function validatePhone(phone) { return /^1[3-9]\d{9}$/.test(phone); }
-    function fileToBase64(file) { return new Promise(function(resolve, reject) { var reader = new FileReader(); reader.onload = function(e) { resolve(e.target.result); }; reader.onerror = reject; reader.readAsDataURL(file); }); }
+    function validatePhone(p) { return /^1[3-9]\d{9}$/.test(p); }
+    function fileToBase64(f) { return new Promise(function(res, rej) { var r = new FileReader(); r.onload = function(e) { res(e.target.result); }; r.onerror = rej; r.readAsDataURL(f); }); }
+    document.getElementById('photoInput').addEventListener('change', function(e) { if (e.target.files[0]) { var i = document.getElementById('photoPreview'); i.src = URL.createObjectURL(e.target.files[0]); i.classList.remove('hidden'); } });
 
-    document.getElementById('photoInput').addEventListener('change', function(e) {
-        if (e.target.files[0]) { var img = document.getElementById('photoPreview'); img.src = URL.createObjectURL(e.target.files[0]); img.classList.remove('hidden'); }
-    });
-
-    // 4. 添加水印（已增大间距）
     function addWatermark(file, canvasId) {
         return new Promise(function(resolve) {
             var reader = new FileReader();
@@ -177,98 +162,59 @@
                 var img = new Image();
                 img.onload = function() {
                     var canvas = document.getElementById(canvasId);
-                    var maxWidth = 800, width = img.width, height = img.height;
-                    if (width > maxWidth) { height = (maxWidth / width) * height; width = maxWidth; }
-                    canvas.width = width; canvas.height = height;
+                    var mw = 800, w = img.width, h = img.height;
+                    if (w > mw) { h = (mw / w) * h; w = mw; }
+                    canvas.width = w; canvas.height = h;
                     var ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+                    ctx.drawImage(img, 0, 0, w, h);
                     ctx.fillStyle = 'rgba(220,30,30,0.18)';
-                    var fontSize = Math.max(20, width / 25);
-                    ctx.font = 'bold ' + fontSize + 'px "Microsoft YaHei",sans-serif';
+                    var fs = Math.max(20, w / 25);
+                    ctx.font = 'bold ' + fs + 'px "Microsoft YaHei",sans-serif';
                     ctx.textAlign = 'center';
-                    ctx.save();
-                    ctx.rotate(-25 * Math.PI / 180);
-                    var text = '仅供工伤预防培训备案使用';
-                    var tw = ctx.measureText(text).width;
-                    var sx = tw + width / 2.5; // 增大水平间距
-                    var sy = fontSize * 4.5;   // 增大垂直间距
-                    for (var y = -height; y < height * 2; y += sy) {
-                        for (var x = -width; x < width * 2; x += sx) {
-                            ctx.fillText(text, x, y);
-                        }
-                    }
-                    ctx.restore();
-                    resolve(canvas);
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+                    ctx.save(); ctx.rotate(-25 * Math.PI / 180);
+                    var txt = '仅供工伤预防培训备案使用', tw = ctx.measureText(txt).width;
+                    var sx = tw + w / 2.5, sy = fs * 4.5;
+                    for (var y = -h; y < h * 2; y += sy) for (var x = -w; x < w * 2; x += sx) ctx.fillText(txt, x, y);
+                    ctx.restore(); resolve(canvas);
+                }; img.src = event.target.result;
+            }; reader.readAsDataURL(file);
         });
     }
-
     document.getElementById('frontInput').addEventListener('change', function(e) { if (e.target.files[0]) addWatermark(e.target.files[0], 'frontCanvas').then(function(c) { c.classList.remove('hidden'); frontWatermarked = true; }); });
     document.getElementById('backInput').addEventListener('change', function(e) { if (e.target.files[0]) addWatermark(e.target.files[0], 'backCanvas').then(function(c) { c.classList.remove('hidden'); backWatermarked = true; }); });
 
-    // 5. 【核心修复】Base64转Blob URL + 图片压缩，解决移动端PDF生成失败
-    function base64ToBlobUrl(base64) {
-        var arr = base64.split(',');
-        var mime = arr[0].match(/:(.*?);/)[1];
-        var bstr = atob(arr[1]);
-        var n = bstr.length;
-        var u8arr = new Uint8Array(n);
-        while (n--) u8arr[n] = bstr.charCodeAt(n);
-        var blob = new Blob([u8arr], { type: mime });
-        return URL.createObjectURL(blob);
-    }
-
-    function compressImageToBlobUrl(base64, maxW) {
-        return new Promise(function(resolve) {
+    function compressBase64(b64, maxW, q) {
+        return new Promise(function(res) {
             var img = new Image();
             img.onload = function() {
                 var w = img.width, h = img.height;
-                if (w > maxW) { h = (maxW / w) * h; w = maxW; }
-                var c = document.createElement('canvas');
-                c.width = w; c.height = h;
+                if (w > maxW) { h = Math.round((maxW / w) * h); w = maxW; }
+                var c = document.createElement('canvas'); c.width = w; c.height = h;
                 c.getContext('2d').drawImage(img, 0, 0, w, h);
-                c.toBlob(function(blob) {
-                    resolve(URL.createObjectURL(blob));
-                }, 'image/jpeg', 0.8);
-            };
-            img.onerror = function() { resolve(base64ToBlobUrl(base64)); };
-            img.src = base64;
+                try { res(c.toDataURL('image/jpeg', q)); } catch(e) { res(b64); }
+            }; img.onerror = function() { res(b64); }; img.src = b64;
         });
     }
 
-    // 6. 表单提交
     document.getElementById('regForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        var rawIdCard = document.getElementById('idCardInput').value;
-        var idCard = sanitizeIdCard(rawIdCard);
+        var idCard = sanitizeIdCard(document.getElementById('idCardInput').value);
         var phone = document.getElementById('phoneInput').value.trim();
-        var idErr = document.getElementById('idCardError');
-        var phErr = document.getElementById('phoneError');
-
-        if (idCard.length !== 18) { idErr.textContent = '身份证号必须为18位，当前' + idCard.length + '位'; idErr.style.display = 'block'; document.getElementById('idCardInput').focus(); return; }
-        var idResult = validateIDCard(idCard);
-        if (!idResult.valid) { idErr.textContent = idResult.msg; idErr.style.display = 'block'; document.getElementById('idCardInput').focus(); return; }
+        var idErr = document.getElementById('idCardError'), phErr = document.getElementById('phoneError');
+        if (idCard.length !== 18) { idErr.textContent = '需18位，当前' + idCard.length + '位'; idErr.style.display = 'block'; return; }
+        var idR = validateIDCard(idCard);
+        if (!idR.valid) { idErr.textContent = idR.msg; idErr.style.display = 'block'; return; }
         idErr.style.display = 'none';
-
-        if (!validatePhone(phone)) { phErr.textContent = '请输入有效的11位手机号（1开头）'; phErr.style.display = 'block'; document.getElementById('phoneInput').focus(); return; }
+        if (!validatePhone(phone)) { phErr.textContent = '请输入有效11位手机号'; phErr.style.display = 'block'; return; }
         phErr.style.display = 'none';
-
         var info = parseIdCard(idCard);
         document.getElementById('genderSelect').value = info.gender;
         document.getElementById('ageInput').value = info.age;
+        if (!document.getElementById('photoInput').files[0] || !frontWatermarked || !backWatermarked) { alert('请完成所有图片上传'); return; }
 
-        if (!document.getElementById('photoInput').files[0] || !frontWatermarked || !backWatermarked) { alert('请完成所有图片上传（一寸照片、身份证正反面）'); return; }
-
-        var fd = new FormData(this);
-        currentFormData = {};
+        var fd = new FormData(this); currentFormData = {};
         fd.forEach(function(v, k) { currentFormData[k] = v; });
-        currentFormData.gender = info.gender;
-        currentFormData.age = String(info.age);
-        currentFormData.id_card = idCard;
-
+        currentFormData.gender = info.gender; currentFormData.age = String(info.age); currentFormData.id_card = idCard;
         currentFormData.photoBase64 = await fileToBase64(document.getElementById('photoInput').files[0]);
         currentFormData.frontBase64 = document.getElementById('frontCanvas').toDataURL('image/jpeg', 0.7);
         currentFormData.backBase64 = document.getElementById('backCanvas').toDataURL('image/jpeg', 0.7);
@@ -285,21 +231,21 @@
         window.scrollTo(0, 0);
     });
 
-    // 7. 生成并下载PDF
+    // ========== DOM锚点定位 + Contain等比缩放 ==========
     document.getElementById('downloadBtn').addEventListener('click', async function() {
         if (!currentFormData) return;
         var loading = document.getElementById('loadingOverlay');
         loading.style.display = 'flex';
         try {
             var d = currentFormData;
+            // 【已修改】二寸照片分辨率更高，压缩上限从150提升至200
+            var photoC = await compressBase64(d.photoBase64, 200, 0.85);
+            var frontC = await compressBase64(d.frontBase64, 600, 0.7);
+            var backC = await compressBase64(d.backBase64, 600, 0.7);
 
-            // 将Base64转为Blob URL，并压缩身份证图片尺寸防止内存溢出
-            var photoUrl = base64ToBlobUrl(d.photoBase64);
-            var frontUrl = await compressImageToBlobUrl(d.frontBase64, 600);
-            var backUrl = await compressImageToBlobUrl(d.backBase64, 600);
-
+            // 【已修改】HTML中照片标签改为"二寸照片"，锚点class使用anchor-photo(100×140)
             var html = '<h1>2026年湖北省重点危险化学品企业自动化仪表作业人员<br>工伤预防能力提升培训学员登记表</h1><table>';
-            html += '<tr><td class="label">填写时间</td><td colspan="4">' + new Date().toLocaleString('zh-CN') + '</td><td class="photo-cell" rowspan="5"><img src="' + photoUrl + '"></td></tr>';
+            html += '<tr><td class="label">填写时间</td><td colspan="4">' + new Date().toLocaleString('zh-CN') + '</td><td class="photo-cell" rowspan="5"><div id="anchor-photo" class="img-anchor anchor-photo"></div></td></tr>';
             html += '<tr><td class="label">姓 名</td><td>' + d.name + '</td><td class="label">性 别</td><td colspan="2">' + d.gender + '</td></tr>';
             html += '<tr><td class="label">年 龄</td><td>' + d.age + '</td><td class="label">电 话</td><td colspan="2">' + d.phone + '</td></tr>';
             html += '<tr><td class="label">身份证号</td><td colspan="4">' + d.id_card + '</td></tr>';
@@ -307,44 +253,87 @@
             html += '<tr><td class="label">培训类别</td><td colspan="2">' + d.train_type + '</td><td class="label">培训班次</td><td colspan="2">' + d.train_class + '</td></tr>';
             html += '<tr><td class="label">培训时间</td><td colspan="5">' + d.train_date_start + ' 至 ' + d.train_date_end + '</td></tr>';
             html += '<tr><td class="label" colspan="6" style="text-align:center;background:#e6e6e6;font-weight:bold;padding:6px;">身份证复印件（系统已自动添加专属防伪水印）</td></tr>';
-            html += '<tr><td colspan="6" style="text-align:center;padding:12px;"><img src="' + frontUrl + '" class="id-img"><div class="id-label">正面（人像面）</div></td></tr>';
-            html += '<tr><td colspan="6" style="text-align:center;padding:12px;"><img src="' + backUrl + '" class="id-img"><div class="id-label">反面（国徽面）</div></td></tr>';
+            html += '<tr><td colspan="6" style="text-align:center;padding:12px;"><div id="anchor-front" class="img-anchor anchor-id"></div><div class="id-label">正面（人像面）</div></td></tr>';
+            html += '<tr><td colspan="6" style="text-align:center;padding:12px;"><div id="anchor-back" class="img-anchor anchor-id"></div><div class="id-label">反面（国徽面）</div></td></tr>';
             html += '</table><div class="footer"><b>备注：</b>本表需由学员本人填写，培训结束后，由培训单位移交相关政府部门核对后归档备查。</div>';
 
             var preview = document.getElementById('pdfPreview');
             preview.innerHTML = html;
 
-            // 等待Blob URL图片加载完成
-            await new Promise(function(resolve) {
-                var imgs = preview.querySelectorAll('img'), loaded = 0;
-                if (!imgs.length) { resolve(); return; }
-                imgs.forEach(function(im) {
-                    if (im.complete) { loaded++; if (loaded >= imgs.length) resolve(); }
-                    else { im.onload = im.onerror = function() { loaded++; if (loaded >= imgs.length) resolve(); }; }
-                });
-                setTimeout(resolve, 5000); // 5秒超时保护
-            });
+            var scale = 2;
+            var canvas = await html2canvas(preview, { scale: scale, useCORS: false, allowTaint: false, backgroundColor: '#ffffff', width: 794, logging: false });
+            var tableImgData = canvas.toDataURL('image/jpeg', 0.92);
 
-            var canvas = await html2canvas(preview, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,       // 允许跨域/ tainted canvas，兼容Blob URL
-                backgroundColor: '#ffffff',
-                width: 794
-            });
+            var getAnchorRect = function(id) {
+                var el = document.getElementById(id);
+                if (!el) return null;
+                var rect = el.getBoundingClientRect();
+                var previewRect = preview.getBoundingClientRect();
+                return {
+                    x: (rect.left - previewRect.left) * scale,
+                    y: (rect.top - previewRect.top) * scale,
+                    w: rect.width * scale,
+                    h: rect.height * scale
+                };
+            };
 
-            // 释放Blob URL内存
-            URL.revokeObjectURL(photoUrl);
-            URL.revokeObjectURL(frontUrl);
-            URL.revokeObjectURL(backUrl);
+            var photoRect = getAnchorRect('anchor-photo');
+            var frontRect = getAnchorRect('anchor-front');
+            var backRect = getAnchorRect('anchor-back');
 
             var jsPDF = window.jspdf.jsPDF;
             var pdf = new jsPDF('p', 'pt', 'a4');
-            var pdfW = 595, pdfH = 842;
-            var imgData = canvas.toDataURL('image/jpeg', 0.92);
-            var imgW = pdfW, imgH = (canvas.height * pdfW) / canvas.width;
-            if (imgH > pdfH) imgH = pdfH;
-            pdf.addImage(imgData, 'JPEG', 0, (pdfH - imgH) / 2, imgW, imgH);
+            var pdfW = 595.28, pdfH = 841.89, margin = 28;
+            var contentW = pdfW - margin * 2;
+
+            var tableH = (canvas.height * contentW) / canvas.width;
+            pdf.addImage(tableImgData, 'JPEG', margin, margin, contentW, tableH);
+
+            var pxToPdf = function(pxVal) { return (pxVal / canvas.width) * contentW; };
+
+            var fitContain = function(imgW, imgH, boxW, boxH) {
+                var ratio = Math.min(boxW / imgW, boxH / imgH);
+                var fw = imgW * ratio, fh = imgH * ratio;
+                return { w: fw, h: fh, ox: (boxW - fw) / 2, oy: (boxH - fh) / 2 };
+            };
+
+            var getImgSize = function(b64) {
+                return new Promise(function(res) {
+                    var img = new Image();
+                    img.onload = function() { res({ w: img.width, h: img.height }); };
+                    img.onerror = function() { res({ w: 1, h: 1 }); };
+                    img.src = b64;
+                });
+            };
+
+            // 叠加二寸照片
+            if (photoRect) {
+                var pSize = await getImgSize(photoC);
+                var pBox = { w: pxToPdf(photoRect.w), h: pxToPdf(photoRect.h) };
+                var pFit = fitContain(pSize.w, pSize.h, pBox.w, pBox.h);
+                var pX = margin + pxToPdf(photoRect.x) + pFit.ox;
+                var pY = margin + pxToPdf(photoRect.y) + pFit.oy;
+                pdf.addImage(photoC, 'JPEG', pX, pY, pFit.w, pFit.h);
+            }
+
+            if (frontRect) {
+                var fSize = await getImgSize(frontC);
+                var fBox = { w: pxToPdf(frontRect.w), h: pxToPdf(frontRect.h) };
+                var fFit = fitContain(fSize.w, fSize.h, fBox.w, fBox.h);
+                var fX = margin + pxToPdf(frontRect.x) + fFit.ox;
+                var fY = margin + pxToPdf(frontRect.y) + fFit.oy;
+                pdf.addImage(frontC, 'JPEG', fX, fY, fFit.w, fFit.h);
+            }
+
+            if (backRect) {
+                var bSize = await getImgSize(backC);
+                var bBox = { w: pxToPdf(backRect.w), h: pxToPdf(backRect.h) };
+                var bFit = fitContain(bSize.w, bSize.h, bBox.w, bBox.h);
+                var bX = margin + pxToPdf(backRect.x) + bFit.ox;
+                var bY = margin + pxToPdf(backRect.y) + bFit.oy;
+                pdf.addImage(backC, 'JPEG', bX, bY, bFit.w, bFit.h);
+            }
+
             pdf.save((d.name || '学员') + '_工伤预防培训登记表.pdf');
         } catch (err) {
             console.error('PDF生成失败:', err);

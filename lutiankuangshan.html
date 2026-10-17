@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>全省露天矿山企业主要负责人工伤预防能力提升培训学员登记表</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px 16px; background: #f4f7f6; color: #333; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; font-size: 18px; line-height: 1.5; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #444; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #dcdde1; border-radius: 6px; font-size: 14px; background: #fff; }
+        .btn-primary { width: 100%; padding: 14px; background: #07c160; color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-download { padding: 14px 40px; background: #07c160; color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn-back { padding: 12px 30px; background: #fff; color: #666; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; cursor: pointer; margin-top: 15px; }
+        .btn-alt { display: inline-block; margin-top: 12px; padding: 10px 24px; background: #3498db; color: #fff; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+        .preview-box { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .preview-box canvas { max-width: 150px; max-height: 150px; border: 1px solid #ddd; border-radius: 4px; object-fit: cover; }
+        .tip { font-size: 12px; color: #888; margin-top: 4px; }
+        .error { font-size: 12px; color: #e74c3c; margin-top: 4px; display: none; }
+        .hidden { display: none !important; }
+        #successPage { text-align: center; padding: 40px 20px; }
+        #successPage h3 { color: #07c160; font-size: 22px; margin-bottom: 15px; }
+        #successPage p { color: #666; margin: 15px 0; line-height: 1.6; }
+        #successPage .tip-text { font-size: 13px; color: #999; margin-top: 25px; }
+        
+        /* ========== PDF预览样式（已优化标题匹配） ========== */
+        #pdfPreview { position: absolute; left: -9999px; top: 0; width: 794px; background: #fff; padding: 40px; font-family: '宋体', SimSun, serif; font-size: 14px; color: #000; line-height: 1.5; }
+        
+        /* 【修改】标题样式：增大字号、加粗、调整间距以匹配表格宽度 */
+        #pdfPreview h1 { 
+            text-align: center; 
+            font-size: 22px;           /* 从18px调整为22px，视觉更饱满 */
+            font-weight: bold; 
+            margin: 0 0 18px 0;        /* 增加底部间距 */
+            padding: 0;                /* 清除默认padding确保宽度对齐 */
+            font-family: '黑体', SimHei, sans-serif; 
+            letter-spacing: 1px;       /* 增加字间距使长标题更舒展 */
+            line-height: 1.4;          /* 多行时行距更协调 */
+        }
+        
+        #pdfPreview .sub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; }
+        #pdfPreview table { width: 100%; border-collapse: collapse; border: 2px solid #000; }
+        #pdfPreview td { border: 1px solid #000; padding: 8px; vertical-align: middle; word-break: break-all; }
+        #pdfPreview .label { background-color: #f0f0f0; font-weight: bold; text-align: center; width: 12%; white-space: nowrap; }
+        #pdfPreview .id-label { font-size: 12px; text-align: center; margin-top: 5px; color: #333; }
+        #pdfPreview .footer { margin-top: 15px; font-size: 11px; text-align: left; color: #333; border-top: 1px dashed #666; padding-top: 8px; }
+        
+        /* 身份证锚点 */
+        .img-anchor { display: block; margin: 0 auto; background: #f9f9f9; border: 1px dashed #ccc; }
+        .anchor-id { width: 480px; height: 300px; }
+
+        #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
+        #loadingOverlay .spinner { background: #fff; padding: 30px 40px; border-radius: 12px; text-align: center; }
+        #loadingOverlay .spinner p { margin-top: 15px; color: #666; font-size: 14px; }
+        #wxTip { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10000; justify-content: center; align-items: flex-start; padding-top: 20px; }
+        #wxTip .box { background: #fff; border-radius: 12px; padding: 24px; max-width: 320px; text-align: center; font-size: 14px; line-height: 1.8; color: #333; }
+        #wxTip .box .arrow { font-size: 36px; color: #07c160; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<h2>📋 全省露天矿山企业主要负责人<br>工伤预防能力提升培训<br>学员登记表</h2>
+
+<form id="regForm">
+    <!-- 第一栏：姓名 + 性别 -->
+    <div class="form-group" style="display:flex; gap:15px;">
+        <div style="flex:1;"><label>姓名 *</label><input name="name" required placeholder="请输入姓名"></div>
+        <div style="flex:1;">
+            <label>性别 *</label>
+            <select name="gender" required>
+                <option value="">请选择</option>
+                <option value="男">男</option>
+                <option value="女">女</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 第二栏：工作单位（或身份证住址） -->
+    <div class="form-group"><label>工作单位（或身份证住址） *</label><input name="company" required placeholder="请输入单位全称或身份证住址"></div>
+
+    <!-- 第三栏：培训类型 + 培训班次 -->
+    <div class="form-group" style="display:flex; gap:15px;">
+        <div style="flex:1;">
+            <label>培训类型 *</label>
+            <select name="train_type" required>
+                <option value="工伤预防能力提升培训">工伤预防能力提升培训</option>
+                <option value="安全生产">安全生产</option>
+                <option value="技能提升">技能提升</option>
+                <option value="管理培训">管理培训</option>
+            </select>
+        </div>
+        <div style="flex:1;"><label>培训班次 *</label><input name="train_class" placeholder="如：第一期" required></div>
+    </div>
+
+    <!-- 第四栏：联系电话 + 职务 -->
+    <div class="form-group" style="display:flex; gap:15px;">
+        <div style="flex:1;">
+            <label>联系电话 *</label>
+            <input name="phone" id="phoneInput" type="tel" maxlength="11" required placeholder="11位手机号" autocomplete="off">
+            <div class="error" id="phoneError"></div>
+        </div>
+        <div style="flex:1;"><label>职务 *</label><input name="position" required placeholder="如：仪表工、班组长"></div>
+    </div>
+
+    <!-- 身份证上传（保留水印） -->
+    <div class="form-group"><label>身份证正面（人像面） *</label><input type="file" accept="image/*" id="frontInput" required><p class="tip">上传后系统将自动添加防伪水印</p><div class="preview-box"><canvas id="frontCanvas" class="hidden"></canvas></div></div>
+    <div class="form-group"><label>身份证反面（国徽面） *</label><input type="file" accept="image/*" id="backInput" required><p class="tip">上传后系统将自动添加防伪水印</p><div class="preview-box"><canvas id="backCanvas" class="hidden"></canvas></div></div>
+    
+    <button type="submit" class="btn-primary" id="submitBtn">提交并生成PDF登记表</button>
+</form>
+
+<div id="successPage" class="hidden">
+    <h3>✅ 提交成功！</h3>
+    <p>请点击下方按钮下载PDF登记表</p>
+    <button class="btn-download" id="downloadBtn">📥 点击下载PDF登记表</button><br>
+    <button class="btn-alt hidden" id="openInBrowserBtn">🔗 在浏览器中打开后下载</button><br>
+    <button class="btn-back" id="backBtn">返回重新填写</button>
+    <p class="tip-text">💡 如果点击下载后没有反应：<br>• 安卓用户请检查浏览器是否拦截了下载弹窗；<br>• iPhone 用户请在弹窗中选择「存储到"文件"」；<br>• 微信内打开请点击「在浏览器中打开」后再下载。</p>
+</div>
+
+<div id="pdfPreview"></div>
+<div id="loadingOverlay"><div class="spinner"><div style="font-size:36px;">⏳</div><p>正在生成PDF，请稍候...</p></div></div>
+<div id="wxTip"><div class="box"><div class="arrow">↗</div><p>当前在微信内打开，下载功能可能受限。</p><p>请点击右上角 <b>⋯</b> → 选择「在浏览器中打开」</p><button class="btn-primary" style="margin-top:15px;" onclick="document.getElementById('wxTip').style.display='none'">我知道了</button></div></div>
+
+<script>
+(function() {
+    'use strict';
+    var currentFormData = null;
+    var frontWatermarked = false;
+    var backWatermarked = false;
+    var ua = navigator.userAgent.toLowerCase();
+    var isWeChat = /micromessenger/.test(ua);
+    if (isWeChat) document.getElementById('wxTip').style.display = 'flex';
+
+    // ========== 工具函数 ==========
+    document.getElementById('phoneInput').addEventListener('input', function(e) { 
+        e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 11); 
+    });
+
+    function validatePhone(p) { return /^1[3-9]\d{9}$/.test(p); }
+
+    function formatDateCN(date) {
+        var y = date.getFullYear();
+        var m = String(date.getMonth() + 1).padStart(2, '0');
+        var d = String(date.getDate()).padStart(2, '0');
+        return y + '年' + m + '月' + d + '日';
+    }
+
+    // ========== 水印功能 ==========
+    function addWatermark(file, canvasId) {
+        return new Promise(function(resolve) {
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                var img = new Image();
+                img.onload = function() {
+                    var canvas = document.getElementById(canvasId);
+                    var mw = 800, w = img.width, h = img.height;
+                    if (w > mw) { h = (mw / w) * h; w = mw; }
+                    canvas.width = w; canvas.height = h;
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    ctx.fillStyle = 'rgba(220,30,30,0.18)';
+                    var fs = Math.max(20, w / 25);
+                    ctx.font = 'bold ' + fs + 'px "Microsoft YaHei",sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.save(); ctx.rotate(-25 * Math.PI / 180);
+                    var txt = '仅供工伤预防培训备案使用', tw = ctx.measureText(txt).width;
+                    var sx = tw + w / 2.5, sy = fs * 4.5;
+                    for (var y = -h; y < h * 2; y += sy) for (var x = -w; x < w * 2; x += sx) ctx.fillText(txt, x, y);
+                    ctx.restore(); resolve(canvas);
+                }; img.src = event.target.result;
+            }; reader.readAsDataURL(file);
+        });
+    }
+    document.getElementById('frontInput').addEventListener('change', function(e) { 
+        if (e.target.files[0]) addWatermark(e.target.files[0], 'frontCanvas').then(function(c) { c.classList.remove('hidden'); frontWatermarked = true; }); 
+    });
+    document.getElementById('backInput').addEventListener('change', function(e) { 
+        if (e.target.files[0]) addWatermark(e.target.files[0], 'backCanvas').then(function(c) { c.classList.remove('hidden'); backWatermarked = true; }); 
+    });
+
+    function compressBase64(b64, maxW, q) {
+        return new Promise(function(res) {
+            var img = new Image();
+            img.onload = function() {
+                var w = img.width, h = img.height;
+                if (w > maxW) { h = Math.round((maxW / w) * h); w = maxW; }
+                var c = document.createElement('canvas'); c.width = w; c.height = h;
+                c.getContext('2d').drawImage(img, 0, 0, w, h);
+                try { res(c.toDataURL('image/jpeg', q)); } catch(e) { res(b64); }
+            }; img.onerror = function() { res(b64); }; img.src = b64;
+        });
+    }
+
+    // ========== 表单提交 ==========
+    document.getElementById('regForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var phone = document.getElementById('phoneInput').value.trim();
+        var phErr = document.getElementById('phoneError');
+
+        if (!validatePhone(phone)) { phErr.textContent = '请输入有效11位手机号'; phErr.style.display = 'block'; return; }
+        phErr.style.display = 'none';
+
+        if (!frontWatermarked || !backWatermarked) { alert('请完成身份证正反面图片上传'); return; }
+
+        var fd = new FormData(this); currentFormData = {};
+        fd.forEach(function(v, k) { currentFormData[k] = v; });
+        currentFormData.frontBase64 = document.getElementById('frontCanvas').toDataURL('image/jpeg', 0.7);
+        currentFormData.backBase64 = document.getElementById('backCanvas').toDataURL('image/jpeg', 0.7);
+
+        document.getElementById('regForm').classList.add('hidden');
+        document.getElementById('successPage').classList.remove('hidden');
+        if (isWeChat) document.getElementById('openInBrowserBtn').classList.remove('hidden');
+        window.scrollTo(0, 0);
+    });
+
+    document.getElementById('backBtn').addEventListener('click', function() {
+        document.getElementById('successPage').classList.add('hidden');
+        document.getElementById('regForm').classList.remove('hidden');
+        window.scrollTo(0, 0);
+    });
+
+    // ========== PDF生成 ==========
+    document.getElementById('downloadBtn').addEventListener('click', async function() {
+        if (!currentFormData) return;
+        var loading = document.getElementById('loadingOverlay');
+        loading.style.display = 'flex';
+        try {
+            var d = currentFormData;
+            var frontC = await compressBase64(d.frontBase64, 600, 0.7);
+            var backC = await compressBase64(d.backBase64, 600, 0.7);
+
+            // 【修改】标题HTML结构优化：去掉手动<br>换行，让CSS自动控制换行
+            // 这样标题文字会自动居中且宽度与下方table一致
+            var html = '<h1>全省露天矿山企业主要负责人工伤预防能力提升培训学员登记表</h1>';
+            
+            html += '<div class="sub-header">';
+            html += '<div style="text-align:left;"><b>承办单位名称：</b>中钢武汉安环院绿世纪安全管理顾问有限公司</div>';
+            html += '<div style="text-align:right;"><b>填写日期：</b>' + formatDateCN(new Date()) + '</div>';
+            html += '</div>';
+            
+            html += '<table>';
+            html += '<tr><td class="label">姓 名</td><td>' + (d.name||'') + '</td><td class="label">性 别</td><td>' + (d.gender||'') + '</td></tr>';
+            html += '<tr><td class="label">工作单位<br>（或身份证住址）</td><td colspan="3">' + (d.company||'') + '</td></tr>';
+            html += '<tr><td class="label">培训类型</td><td>' + (d.train_type||'') + '</td><td class="label">培训班次</td><td>' + (d.train_class||'') + '</td></tr>';
+            html += '<tr><td class="label">联系电话</td><td>' + (d.phone||'') + '</td><td class="label">职 务</td><td>' + (d.position||'') + '</td></tr>';
+            html += '<tr><td class="label" colspan="4" style="text-align:center;background:#e6e6e6;font-weight:bold;padding:6px;">身份证复印件（系统已自动添加专属防伪水印）</td></tr>';
+            html += '<tr><td colspan="4" style="text-align:center;padding:12px;"><div id="anchor-front" class="img-anchor anchor-id"></div><div class="id-label">正面（人像面）</div></td></tr>';
+            html += '<tr><td colspan="4" style="text-align:center;padding:12px;"><div id="anchor-back" class="img-anchor anchor-id"></div><div class="id-label">反面（国徽面）</div></td></tr>';
+            html += '</table>';
+            
+            html += '<div class="footer"><b>注：</b>本表需由学员本人填写，一式两份，一份留存培训机构，一份送交省应急管理厅现场核对后归档备查。</div>';
+
+            var preview = document.getElementById('pdfPreview');
+            preview.innerHTML = html;
+
+            var scale = 2;
+            var canvas = await html2canvas(preview, { scale: scale, useCORS: false, allowTaint: false, backgroundColor: '#ffffff', width: 794, logging: false });
+            var tableImgData = canvas.toDataURL('image/jpeg', 0.92);
+
+            var getAnchorRect = function(id) {
+                var el = document.getElementById(id);
+                if (!el) return null;
+                var rect = el.getBoundingClientRect();
+                var previewRect = preview.getBoundingClientRect();
+                return {
+                    x: (rect.left - previewRect.left) * scale,
+                    y: (rect.top - previewRect.top) * scale,
+                    w: rect.width * scale,
+                    h: rect.height * scale
+                };
+            };
+
+            var frontRect = getAnchorRect('anchor-front');
+            var backRect = getAnchorRect('anchor-back');
+
+            var jsPDF = window.jspdf.jsPDF;
+            var pdf = new jsPDF('p', 'pt', 'a4');
+            var pdfW = 595.28, pdfH = 841.89, margin = 28;
+            var contentW = pdfW - margin * 2;
+
+            var tableH = (canvas.height * contentW) / canvas.width;
+            pdf.addImage(tableImgData, 'JPEG', margin, margin, contentW, tableH);
+
+            var pxToPdf = function(pxVal) { return (pxVal / canvas.width) * contentW; };
+
+            var fitContain = function(imgW, imgH, boxW, boxH) {
+                var ratio = Math.min(boxW / imgW, boxH / imgH);
+                var fw = imgW * ratio, fh = imgH * ratio;
+                return { w: fw, h: fh, ox: (boxW - fw) / 2, oy: (boxH - fh) / 2 };
+            };
+
+            var getImgSize = function(b64) {
+                return new Promise(function(res) {
+                    var img = new Image();
+                    img.onload = function() { res({ w: img.width, h: img.height }); };
+                    img.onerror = function() { res({ w: 1, h: 1 }); };
+                    img.src = b64;
+                });
+            };
+
+            if (frontRect) {
+                var fSize = await getImgSize(frontC);
+                var fBox = { w: pxToPdf(frontRect.w), h: pxToPdf(frontRect.h) };
+                var fFit = fitContain(fSize.w, fSize.h, fBox.w, fBox.h);
+                pdf.addImage(frontC, 'JPEG', margin + pxToPdf(frontRect.x) + fFit.ox, margin + pxToPdf(frontRect.y) + fFit.oy, fFit.w, fFit.h);
+            }
+            if (backRect) {
+                var bSize = await getImgSize(backC);
+                var bBox = { w: pxToPdf(backRect.w), h: pxToPdf(backRect.h) };
+                var bFit = fitContain(bSize.w, bSize.h, bBox.w, bBox.h);
+                pdf.addImage(backC, 'JPEG', margin + pxToPdf(backRect.x) + bFit.ox, margin + pxToPdf(backRect.y) + bFit.oy, bFit.w, bFit.h);
+            }
+
+            pdf.save((d.name || '学员') + '_露天矿山主要负责人工伤预防培训学员登记表.pdf');
+        } catch (err) {
+            console.error('PDF生成失败:', err);
+            alert('PDF生成失败：' + err.message);
+        } finally {
+            loading.style.display = 'none';
+        }
+    });
+
+    document.getElementById('openInBrowserBtn').addEventListener('click', function() { alert('请复制链接在浏览器中打开：\n' + window.location.href); });
+})();
+</script>
+</body>
+</html>

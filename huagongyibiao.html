@@ -102,7 +102,14 @@
             <input name="phone" id="phoneInput" type="tel" maxlength="11" required placeholder="11位手机号" autocomplete="off">
             <div class="error" id="phoneError"></div>
         </div>
-        <div style="flex:1;"><label>职务 *</label><input name="position" required placeholder="如：仪表工、班组长"></div>
+        <!-- 【修改】职务改为下拉选择，固定选项为：化工自动化仪表作业管理人员 -->
+        <div style="flex:1;">
+            <label>职务 *</label>
+            <select name="position" required>
+                <option value="">请选择职务</option>
+                <option value="化工自动化仪表作业管理人员">化工自动化仪表作业管理人员</option>
+            </select>
+        </div>
     </div>
 
     <!-- 身份证上传（保留水印） -->

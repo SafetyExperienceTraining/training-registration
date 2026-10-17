@@ -12,7 +12,7 @@
         h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; font-size: 18px; line-height: 1.5; }
         .form-group { margin-bottom: 18px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #444; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #dcdde1; border-radius: 6px; font-size: 14px; background: #fff; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #dcdde1; border-radius: 6px; font-size: 14px; background: #fff; appearance: auto; }
         .btn-primary { width: 100%; padding: 14px; background: #07c160; color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .btn-download { padding: 14px 40px; background: #07c160; color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-back { padding: 12px 30px; background: #fff; color: #666; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; cursor: pointer; margin-top: 15px; }
@@ -27,26 +27,32 @@
         #successPage p { color: #666; margin: 15px 0; line-height: 1.6; }
         #successPage .tip-text { font-size: 13px; color: #999; margin-top: 25px; }
         
-        #pdfPreview { position: absolute; left: -9999px; top: 0; width: 794px; background: #fff; padding: 40px; font-family: '宋体', SimSun, serif; font-size: 14px; color: #000; line-height: 1.5; }
-        /* 【已修改】PDF标题样式：增大字号、加粗、调整行高与间距，使其与表格宽度匹配 */
+        /* 【优化】PDF预览区域样式调整，确保内容适配单页A4 */
+        #pdfPreview { 
+            position: absolute; left: -9999px; top: 0; 
+            width: 794px; background: #fff; 
+            padding: 30px 35px; /* 减小内边距 */
+            font-family: '宋体', SimSun, serif; font-size: 13px; color: #000; line-height: 1.4; 
+        }
         #pdfPreview h1 { 
             text-align: center; 
-            font-size: 24px; 
+            font-size: 22px; /* 略微缩小标题字号 */
             font-weight: 900; 
-            margin: 0 0 20px 0; 
+            margin: 0 0 15px 0; 
             font-family: '黑体', SimHei, sans-serif; 
-            line-height: 1.4;
+            line-height: 1.3;
             letter-spacing: 1px;
         }
-        #pdfPreview .sub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; }
+        #pdfPreview .sub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
         #pdfPreview table { width: 100%; border-collapse: collapse; border: 2px solid #000; }
-        #pdfPreview td { border: 1px solid #000; padding: 8px; vertical-align: middle; word-break: break-all; }
+        #pdfPreview td { border: 1px solid #000; padding: 6px 8px; vertical-align: middle; word-break: break-all; }
         #pdfPreview .label { background-color: #f0f0f0; font-weight: bold; text-align: center; width: 12%; white-space: nowrap; }
-        #pdfPreview .id-label { font-size: 12px; text-align: center; margin-top: 5px; color: #333; }
-        #pdfPreview .footer { margin-top: 15px; font-size: 11px; text-align: left; color: #333; border-top: 1px dashed #666; padding-top: 8px; }
+        #pdfPreview .id-label { font-size: 11px; text-align: center; margin-top: 4px; color: #333; }
+        #pdfPreview .footer { margin-top: 12px; font-size: 11px; text-align: left; color: #333; border-top: 1px dashed #666; padding-top: 6px; }
         
         .img-anchor { display: block; margin: 0 auto; background: #f9f9f9; border: 1px dashed #ccc; }
-        .anchor-id { width: 480px; height: 300px; }
+        /* 【优化】减小证件照占位高度，防止超出单页 */
+        .anchor-id { width: 420px; height: 220px; }
 
         #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
         #loadingOverlay .spinner { background: #fff; padding: 30px 40px; border-radius: 12px; text-align: center; }
@@ -80,7 +86,16 @@
             <label>培训类型</label>
             <input type="text" value="湖北省化工企业职业病危害风险防控与实践能力提升培训" readonly style="background:#f5f5f5;color:#666;cursor:not-allowed;">
         </div>
-        <div style="flex:1;"><label>培训班次 *</label><input name="train_class" placeholder="如：A班" required></div>
+        <!-- 【修改】培训班次改为下拉选择 -->
+        <div style="flex:1;">
+            <label>培训班次 *</label>
+            <select name="train_class" required>
+                <option value="">请选择班次</option>
+                <option value="第一期">第一期</option>
+                <option value="第二期">第二期</option>
+                <option value="第三期">第三期</option>
+            </select>
+        </div>
     </div>
 
     <div class="form-group" style="display:flex; gap:15px;">
@@ -89,7 +104,15 @@
             <input name="phone" id="phoneInput" type="tel" maxlength="11" required placeholder="11位手机号" autocomplete="off">
             <div class="error" id="phoneError"></div>
         </div>
-        <div style="flex:1;"><label>职务 *</label><input name="position" required placeholder="如：安全员、车间主任"></div>
+        <!-- 【修改】职务改为下拉选择 -->
+        <div style="flex:1;">
+            <label>职务 *</label>
+            <select name="position" required>
+                <option value="">请选择职务</option>
+                <option value="职业健康分管负责人">职业健康分管负责人</option>
+                <option value="职业健康管理人员">职业健康管理人员</option>
+            </select>
+        </div>
     </div>
 
     <div class="form-group"><label>身份证正面（人像面） *</label><input type="file" accept="image/*" id="frontInput" required><p class="tip">上传后系统将自动添加防伪水印</p><div class="preview-box"><canvas id="frontCanvas" class="hidden"></canvas></div></div>
@@ -230,9 +253,9 @@
             html += '<tr><td class="label">工作单位<br>（或身份证住址）</td><td colspan="3">' + (d.company||'') + '</td></tr>';
             html += '<tr><td class="label">培训类型</td><td>' + FIXED_TRAIN_TYPE + '</td><td class="label">培训班次</td><td>' + (d.train_class||'') + '</td></tr>';
             html += '<tr><td class="label">联系电话</td><td>' + (d.phone||'') + '</td><td class="label">职 务</td><td>' + (d.position||'') + '</td></tr>';
-            html += '<tr><td class="label" colspan="4" style="text-align:center;background:#e6e6e6;font-weight:bold;padding:6px;">身份证复印件（系统已自动添加专属防伪水印）</td></tr>';
-            html += '<tr><td colspan="4" style="text-align:center;padding:12px;"><div id="anchor-front" class="img-anchor anchor-id"></div><div class="id-label">正面（人像面）</div></td></tr>';
-            html += '<tr><td colspan="4" style="text-align:center;padding:12px;"><div id="anchor-back" class="img-anchor anchor-id"></div><div class="id-label">反面（国徽面）</div></td></tr>';
+            html += '<tr><td class="label" colspan="4" style="text-align:center;background:#e6e6e6;font-weight:bold;padding:5px;">身份证复印件（系统已自动添加专属防伪水印）</td></tr>';
+            html += '<tr><td colspan="4" style="text-align:center;padding:10px;"><div id="anchor-front" class="img-anchor anchor-id"></div><div class="id-label">正面（人像面）</div></td></tr>';
+            html += '<tr><td colspan="4" style="text-align:center;padding:10px;"><div id="anchor-back" class="img-anchor anchor-id"></div><div class="id-label">反面（国徽面）</div></td></tr>';
             html += '</table>';
             
             html += '<div class="footer"><b>注：</b>本表需由学员本人填写，一式两份，一份留存培训机构，一份送交湖北省卫生健康委员会现场核对后归档备查。</div>';

@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2026年恩施州建筑业工伤预防能力提升培训班学员信息登记表</title>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <!-- 1. 更换为更稳定的 cdnjs 源 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px 16px; background: #f4f7f6; color: #333; }
@@ -89,7 +90,7 @@
         <div style="flex:1;">
             <label>培训类型 *</label>
             <select name="train_type" required>
-                <option value="2026年恩施州建筑业工伤预防能力提升培训班">2026年恩施州建筑业工伤预防能力提升培训班</option>
+                <option value="2026年恩施州建筑业工伤预防能力提升培训班">2026年恩施州建筑业工伤预防&#10;能力提升培训班</option>
             </select>
         </div>
         <div style="flex:1;">
@@ -206,7 +207,11 @@
         html += '<table>';
         html += '<tr><td class="label">姓 名</td><td>' + (d.name||'') + '</td><td class="label">性 别</td><td>' + (d.gender||'') + '</td></tr>';
         html += '<tr><td class="label">工作单位<br>（或身份证住址）</td><td colspan="3">' + (d.company||'') + '</td></tr>';
-        html += '<tr><td class="label">培训类型</td><td>' + (d.train_type||'') + '</td><td class="label">联系电话</td><td>' + (d.phone||'') + '</td></tr>';
+        
+        // ===== 培训类型：两行显示 =====
+        var trainTypeDisplay = (d.train_type || '').replace('工伤预防能力提升', '工伤预防<br>能力提升');
+        html += '<tr><td class="label">培训类型</td><td>' + trainTypeDisplay + '</td><td class="label">联系电话</td><td>' + (d.phone||'') + '</td></tr>';
+        
         html += '<tr><td class="label" colspan="4" style="text-align:center;background:#e6e6e6;font-weight:bold;padding:6px;">身份证复印件（系统已自动添加专属防伪水印）</td></tr>';
         html += '<tr><td colspan="4" style="text-align:center;padding:12px;"><div id="anchor-front" class="img-anchor anchor-id"></div><div class="id-label">正面（人像面）</div></td></tr>';
         html += '<tr><td colspan="4" style="text-align:center;padding:12px;"><div id="anchor-back" class="img-anchor anchor-id"></div><div class="id-label">反面（国徽面）</div></td></tr>';
@@ -246,6 +251,13 @@
     // ========== 生成长图并弹出保存（微信核心功能） ==========
     document.getElementById('saveImgBtn').addEventListener('click', async function() {
         if (!currentFormData) return;
+        
+        // 2. 增加库加载检查
+        if (typeof window.html2canvas === 'undefined') {
+            alert('生成失败：核心组件 html2canvas 未加载成功。\n请检查网络连接后刷新页面重试。');
+            return;
+        }
+
         var loading = document.getElementById('loadingOverlay');
         var loadingText = document.getElementById('loadingText');
         loadingText.textContent = '正在生成长图，请稍候...';
@@ -258,11 +270,9 @@
             var preview = document.getElementById('pdfPreview');
             preview.innerHTML = buildPreviewHTML(d);
 
-            // 等待字体和图片加载完成
             await document.fonts.ready;
             await new Promise(function(r) { setTimeout(r, 300); });
 
-            // 通过CSS背景图注入身份证到占位div（长图专用方式）
             var frontAnchor = document.getElementById('anchor-front');
             var backAnchor = document.getElementById('anchor-back');
             if (frontAnchor) {
@@ -278,7 +288,6 @@
                 backAnchor.style.backgroundPosition = 'center';
             }
 
-            // 3倍率渲染保证手机端清晰度，使用PNG避免文字压缩伪影
             var scale = 3;
             var canvas = await html2canvas(preview, {
                 scale: scale,
@@ -307,9 +316,16 @@
         document.getElementById('imgSaveModal').style.display = 'none';
     });
 
-    // ========== PDF生成（保持原有逻辑，改用公共函数） ==========
+    // ========== PDF生成 ==========
     document.getElementById('downloadBtn').addEventListener('click', async function() {
         if (!currentFormData) return;
+
+        // 2. 增加库加载检查
+        if (typeof window.html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+            alert('生成失败：核心组件加载不完整。\n请检查网络连接后刷新页面重试。');
+            return;
+        }
+
         var loading = document.getElementById('loadingOverlay');
         var loadingText = document.getElementById('loadingText');
         loadingText.textContent = '正在生成PDF，请稍候...';
